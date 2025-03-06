@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stockr MVP</title>
+</head>
+<body>
+    <h2>Assets</h2>
+    <button onclick="fetchAssets()">Load Assets</button>
+    <ul id="assetList"></ul>
+
+    <script>
+        async function fetchAssets() {
+            let response = await fetch("/assets");
+            let assets = await response.json();
+            let list = document.getElementById("assetList");
+            list.innerHTML = "";
+            assets.forEach(asset => {
+                let li = document.createElement("li");
+                li.textContent = `${asset.name} - Owned by ${asset.owner}`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
