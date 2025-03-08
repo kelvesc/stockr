@@ -1,48 +1,64 @@
-import sqlalchemy as db
-from sqlalchemy import ForeignKey, Column, Integer, String, DateTime
-from sqlalchemy.orm import DeclarativeBase, relationship
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
+from sqlalchemy.orm import DeclarativeBase
 
 class Base(DeclarativeBase):
-    pass
+  pass
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(80), unique=True, nullable=False)
-    email = Column(String(120), unique=True)
-    password = Column(String(255), nullable=False)
-    role = Column(String(20), nullable=False)  # user, manager, admin
+db = SQLAlchemy(model_class=Base)
 
-    def __init__(self, username=None, email=None, password=None, role=None):
-        self.username = username
-        self.email = email
-        self.password = password
-        self.role = role
+class Team(db.Model):
+    __tablename__ = "teams"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    location = db.Column(db.String(50), unique=False, nullable=False)
 
-    def __repr__(self):
-        return f'<User {self.username!r}>'
+class Subteam(db.Model):
+    __tablename__ = "subteams"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    origin_team = db.Column(db.String(50), db.ForeignKey('teams.id'), unique=False, nullable=False)
+    team = db.relationship('Team', backref='subteams')
 
-class Asset(Base):
-    __tablename__ = 'assets'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    tag = Column(String(50), unique=True, nullable=False)
-    name = Column(String(100), nullable=False)
-    category = Column(String(50), nullable=False)
-    owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    owner = relationship('User', backref='assets')
+class User(db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    coreid = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(50), unique=False, nullable=False)
+    last_name = db.Column(db.String(50), unique=False, nullable=False)
+    email = db.Column(db.String(50), unique=True, nullable=False)
+    psw = db.Column(db.String(50), unique=False, nullable=False)
+    team_id = db.Column(db.String(50), db.ForeignKey('teams.id'), unique=False, nullable=False)
+    subteam_id = db.Column(db.String(50), db.ForeignKey('subteams.id'), unique=False, nullable=False)
+    team = db.relationship('Team', backref='users')
+    subteam = db.relationship('Subteam', backref='users')
 
-    def __repr__(self):
-        return f'<Asset {self.tag}, Name {self.name}, Owner {self.owner_id}>'
 
-class Transaction(Base):
-    __tablename__ = 'transactions'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    asset_tag = Column(Integer, ForeignKey('assets.tag'), nullable=False)
-    from_user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    to_user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    date_transaction = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
-    comments = Column(String(255), default=None)
+class Type(db.Model):
+    __tablename__ = "types"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
 
-    def __repr__(self):
-        return f'<Transaction Asset {self.asset_id}, From {self.from_user_id}, To {self.to_user_id}>'
+class Asset(db.Model):
+    __tablename__ = "assets"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    tag = db.Column(db.Integer, unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    serial_number = db.Column(db.String(100), unique=True, nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    comments = db.Column(db.String(200), nullable=False)
+    type_id = db.Column(db.Integer, db.ForeignKey('types.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
+    type = db.relationship('Type', backref='assets')
+    team = db.relationship('Team', backref='assets')
+    owner = db.relationship('User', backref='assets')
+
+class Transaction(db.Model):
+    __tablename__ = "transactions"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    responsible_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    asset_tag = db.Column(db.Integer, db.ForeignKey('assets.tag'), nullable=False)
+    date_transaction = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    responsible = db.relationship('User', backref='transactions')
+    asset = db.relationship('Asset', backref='transactions')
