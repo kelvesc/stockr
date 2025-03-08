@@ -29,14 +29,37 @@ def get_assets():
     assets = Asset.query.all()
     return jsonify([{"id": a.id, "name": a.name, "owner": a.owner.username} for a in assets])
 
+# @api_bp.route('/assign', methods=['POST'])
+# @jwt_required()
+# def assign_asset():
+#     data = request.get_json()
+#     user_id = get_jwt_identity()
+    
+#     asset = Asset.query.get(data.get('asset_id'))
+    
+#     if asset:
+#         asset.owner_id = user_id
+#         db.session.commit()
+#         return jsonify({"message": "Asset assigned successfully"}), 200
+
+#     return jsonify({"error": "Asset not found"}), 404
+
 @api_bp.route('/assign', methods=['POST'])
 @jwt_required()
 def assign_asset():
     data = request.get_json()
     user_id = get_jwt_identity()
-    asset = Asset.query.get(data['asset_id'])
-    if asset:
-        asset.owner_id = user_id
-        db.session.commit()
-        return jsonify({"message": "Asset assigned"})
-    return jsonify({"error": "Asset not found"}), 404
+
+    asset = Asset.query.filter_by(tag=data.get('asset_tag')).first()
+    new_owner = User.query.filter_by(coreid=data.get('new_owner_coreid')).first()
+
+    if not asset:
+        return jsonify({"error": "Asset not found"}), 404
+    if not new_owner:
+        return jsonify({"error": "User not found"}), 404
+
+    asset.owner_id = new_owner.id
+    db.session.commit()
+
+    return jsonify({"message": "Asset assigned successfully"}), 200
+
