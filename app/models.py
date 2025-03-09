@@ -2,6 +2,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 from sqlalchemy.orm import DeclarativeBase
 
+# db = SQLAlchemy()
+
 class Base(DeclarativeBase):
   pass
 
@@ -17,7 +19,7 @@ class Subteam(db.Model):
     __tablename__ = "subteams"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
-    origin_team = db.Column(db.String(50), db.ForeignKey('teams.id'), unique=False, nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), unique=False, nullable=False)
     team = db.relationship('Team', backref='subteams')
 
 class User(db.Model):
@@ -28,8 +30,8 @@ class User(db.Model):
     last_name = db.Column(db.String(50), unique=False, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     psw = db.Column(db.String(50), unique=False, nullable=False)
-    team_id = db.Column(db.String(50), db.ForeignKey('teams.id'), unique=False, nullable=False)
-    subteam_id = db.Column(db.String(50), db.ForeignKey('subteams.id'), unique=False, nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), unique=False, nullable=False)
+    subteam_id = db.Column(db.Integer, db.ForeignKey('subteams.id'), unique=False, nullable=False)
     team = db.relationship('Team', backref='users')
     subteam = db.relationship('Subteam', backref='users')
 
