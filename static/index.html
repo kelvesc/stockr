@@ -2,25 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stockr MVP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stockr - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css ">
 </head>
 <body>
-    <h2>Assets</h2>
-    <button onclick="fetchAssets()">Load Assets</button>
-    <ul id="assetList"></ul>
+    <header>
+        <div id="title">
+            <h2>
+                Stockr
+            </h2>
+        </div>
+    </header>
+    <main>
+        <h3>Available Assets</h3>
+        <input type="text" id="search" placeholder="Search assets" onkeyup="searchAssets()">
+        <button onclick="searchAssets()">Search</button>
+        
+        <div id="product">
+            <table>
+                <thead>
+                    <tr class="headtable">
+                        <th>TAG</th>
+                        <th>Name</th>
+                        <th>serial_number</th>
+                        <th>status</th>
+                        <th>comments</th>
+                        <th>owner</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                </tbody>
+            </table>
+        </div>
+    </main>
 
-    <script>
-        async function fetchAssets() {
-            let response = await fetch("/assets");
-            let assets = await response.json();
-            let list = document.getElementById("assetList");
-            list.innerHTML = "";
-            assets.forEach(asset => {
-                let li = document.createElement("li");
-                li.textContent = `${asset.name} - Owned by ${asset.owner}`;
-                list.appendChild(li);
-            });
-        }
-    </script>
+    <div id="contextMenu" class="context-menu">
+        <ul>
+            <li onclick="transferAsset()">Transfer to outher owner</li>
+            <li onclick="viewHistory()">History</li>
+        </ul>
+    </div>
+
+    <div id="transferModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Asset Transfer</h2>
+            <div class="headermodal">
+                <p><strong>Owner: </strong> <span id="ownerName"></span></p>
+            </div>
+            
+                <h3>Select new owner:</h3>
+                <select id="newOwnerSelect"></select>
+                <h3>Select assets to transfer</h3>
+                <div id="assetsList"></div>
+            
+            <button onclick="confirmTransfer()">Confirm</button>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="historymodal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Transfer History</h3>
+                <table>
+                    <thead>
+                        <tr class="historyheadtable">
+                            <th>TAG</th>
+                            <th>Owner</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList"></tbody>
+                </table>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
 </body>
 </html>
